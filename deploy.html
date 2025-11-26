@@ -460,6 +460,12 @@
           if (currentVrm) {
               // Update model to render physics
               currentVrm.update(clock.getDelta());
+              // Keep eyes open in deploy page
+              if (currentVrm.blendShapeProxy) {
+                  const Blendshape = currentVrm.blendShapeProxy;
+                  const PresetName = THREE.VRMSchema.BlendShapePresetName;
+                  Blendshape.setValue(PresetName.Blink, 0);
+              }
           }
           renderer.render(scene, orbitCamera);
       }
@@ -481,6 +487,12 @@
                   scene.add(vrm.scene);
                   currentVrm = vrm;
                   currentVrm.scene.rotation.y = Math.PI; // Rotate model 180deg to face camera
+                  // Initialize eyes to open (blink = 0) when model loads
+                  if (currentVrm && currentVrm.blendShapeProxy) {
+                      const Blendshape = currentVrm.blendShapeProxy;
+                      const PresetName = THREE.VRMSchema.BlendShapePresetName;
+                      Blendshape.setValue(PresetName.Blink, 0);
+                  }
               });
           },
 
@@ -533,12 +545,9 @@
           const Blendshape = currentVrm.blendShapeProxy;
           const PresetName = THREE.VRMSchema.BlendShapePresetName;
 
-          // Simple example without winking. Interpolate based on old blendshape, then stabilize blink with `Kalidokit` helper function.
+          // Keep eyes open in deploy page - force blink to 0
           // for VRM, 1 is closed, 0 is open.
-          riggedFace.eye.l = lerp(clamp(1 - riggedFace.eye.l, 0, 1), Blendshape.getValue(PresetName.Blink), 0.5);
-          riggedFace.eye.r = lerp(clamp(1 - riggedFace.eye.r, 0, 1), Blendshape.getValue(PresetName.Blink), 0.5);
-          riggedFace.eye = Kalidokit.Face.stabilizeBlink(riggedFace.eye, riggedFace.head.y);
-          Blendshape.setValue(PresetName.Blink, riggedFace.eye.l);
+          Blendshape.setValue(PresetName.Blink, 0);
 
           // Interpolate and set mouth blendshapes
           Blendshape.setValue(PresetName.I, lerp(riggedFace.mouth.shape.I, Blendshape.getValue(PresetName.I), 0.5));
@@ -583,6 +592,13 @@
                   video: videoElement,
               });
               rigFace(riggedFace);
+          } else {
+              // If no face landmarks, keep eyes open (blink = 0)
+              if (currentVrm && currentVrm.blendShapeProxy) {
+                  const Blendshape = currentVrm.blendShapeProxy;
+                  const PresetName = THREE.VRMHumanBoneName;
+                  Blendshape.setValue(THREE.VRMExpressionPresetName.Blink, 0);
+              }
           }
 
           // Animate Pose
@@ -735,16 +751,20 @@
               color: "#ff0364",
               lineWidth: 2,
           });
-          drawConnectors(canvasCtx, results.faceLandmarks, FACEMESH_TESSELATION, {
-              color: "#C0C0C070",
-              lineWidth: 1,
-          });
-          if (results.faceLandmarks && results.faceLandmarks.length === 478) {
-              //draw pupils
-              drawLandmarks(canvasCtx, [results.faceLandmarks[468], results.faceLandmarks[468 + 5]], {
-                  color: "#ffe603",
-                  lineWidth: 2,
+          // Draw face landmarks if available
+          if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+              drawConnectors(canvasCtx, results.faceLandmarks, FACEMESH_TESSELATION, {
+                  color: "#C0C0C070",
+                  lineWidth: 1,
               });
+              // Draw pupils if we have the full 478 landmarks
+              if (results.faceLandmarks.length === 478) {
+                  //draw pupils
+                  drawLandmarks(canvasCtx, [results.faceLandmarks[468], results.faceLandmarks[468 + 5]], {
+                      color: "#ffe603",
+                      lineWidth: 2,
+                  });
+              }
           }
           drawConnectors(canvasCtx, results.leftHandLandmarks, HAND_CONNECTIONS, {
               color: "#eb1064",

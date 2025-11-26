@@ -215,6 +215,12 @@
       #stopRecord:hover:not(:disabled) {
         background: #da190b;
       }
+      #deleteSign {
+        background: #ff9800;
+      }
+      #deleteSign:hover:not(:disabled) {
+        background: #f57c00;
+      }
       #playbackBtn {
         background: #2196F3;
       }
@@ -355,6 +361,7 @@
             <input type="text" id="signName" placeholder="Enter sign name" />
             <button id="startRecord">Start Record</button>
             <button id="stopRecord" disabled>Stop Record</button>
+            <button id="deleteSign">Delete Sign</button>
           </div>
         </div>
         <div class="playback-controls">
@@ -842,6 +849,101 @@
               } catch (error) {
                   console.error("Error saving recording:", error);
                   alert("Error saving recording: " + error.message);
+              }
+          });
+          
+          // Delete sign button functionality
+          const deleteButton = document.getElementById("deleteSign");
+          deleteButton.addEventListener("click", async () => {
+              try {
+                  // Check if database is available, initialize if needed
+                  if (!db) {
+                      console.log("Database not available, attempting to initialize...");
+                      await initDB();
+                  }
+                  
+                  // Get all recordings from database
+                  const transaction = db.transaction([storeName], "readonly");
+                  const store = transaction.objectStore(storeName);
+                  const getAllRequest = store.getAll();
+                  
+                  getAllRequest.onsuccess = () => {
+                      const recordings = getAllRequest.result;
+                      
+                      if (recordings.length === 0) {
+                          alert("No sign language data found in database.");
+                          return;
+                      }
+                      
+                      // Create a list of sign names for user to choose from
+                      const signNames = recordings.map(r => r.signName).filter(Boolean);
+                      const uniqueSignNames = [...new Set(signNames)];
+                      
+                      if (uniqueSignNames.length === 0) {
+                          alert("No sign names found in database.");
+                          return;
+                      }
+                      
+                      // Show prompt with available sign names
+                      const signList = uniqueSignNames.map((name, index) => `${index + 1}. ${name}`).join('\n');
+                      const userInput = prompt(`Enter the sign name to delete:\n\nAvailable signs:\n${signList}\n\nType the exact sign name:`);
+                      
+                      if (!userInput || !userInput.trim()) {
+                          return; // User cancelled or entered nothing
+                      }
+                      
+                      const signNameToDelete = userInput.trim();
+                      
+                      // Confirm deletion
+                      if (!confirm(`Are you sure you want to delete "${signNameToDelete}"? This action cannot be undone.`)) {
+                          return;
+                      }
+                      
+                      // Delete all recordings with matching sign name
+                      const deleteTransaction = db.transaction([storeName], "readwrite");
+                      const deleteStore = deleteTransaction.objectStore(storeName);
+                      
+                      let deletedCount = 0;
+                      let deletePromises = [];
+                      
+                      recordings.forEach(recording => {
+                          if (recording.signName && recording.signName.toLowerCase() === signNameToDelete.toLowerCase()) {
+                              const deleteRequest = deleteStore.delete(recording.id);
+                              deletePromises.push(
+                                  new Promise((resolve, reject) => {
+                                      deleteRequest.onsuccess = () => {
+                                          deletedCount++;
+                                          resolve();
+                                      };
+                                      deleteRequest.onerror = () => {
+                                          reject(deleteRequest.error);
+                                      };
+                                  })
+                              );
+                          }
+                      });
+                      
+                      Promise.all(deletePromises)
+                          .then(() => {
+                              if (deletedCount > 0) {
+                                  alert(`Successfully deleted "${signNameToDelete}" (${deletedCount} recording(s) removed).`);
+                              } else {
+                                  alert(`No recordings found with the sign name "${signNameToDelete}".`);
+                              }
+                          })
+                          .catch((error) => {
+                              console.error("Error deleting recording:", error);
+                              alert("Error deleting recording: " + error.message);
+                          });
+                  };
+                  
+                  getAllRequest.onerror = () => {
+                      console.error("Error getting recordings:", getAllRequest.error);
+                      alert("Error accessing database: " + getAllRequest.error);
+                  };
+              } catch (error) {
+                  console.error("Error in delete operation:", error);
+                  alert("Error deleting sign: " + error.message);
               }
           });
       };

@@ -1271,41 +1271,73 @@
       // Import recordings from JSON file
       const importRecordings = (file) => {
           const reader = new FileReader();
-          reader.onload = (event) => {
+          reader.onload = async (event) => {
               try {
                   const importedData = JSON.parse(event.target.result);
                   if (!Array.isArray(importedData)) {
                       alert("Invalid file format.");
                       return;
                   }
-                  const transaction = db.transaction([storeName], "readwrite");
-                  const store = transaction.objectStore(storeName);
-                  let importedCount = 0;
-                  let processed = 0;
-                  importedData.forEach((recording) => {
-                      // Check for duplicate by signName
-                      const indexRequest = store.index ? store.index("signName").get(recording.signName) : null;
-                      if (indexRequest) {
-                          indexRequest.onsuccess = () => {
-                              if (!indexRequest.result) {
-                                  store.add(recording);
-                                  importedCount++;
-                              }
+                  
+                  // Check if database is available, initialize if needed
+                  if (!db) {
+                      console.log("Database not available, attempting to initialize...");
+                      await initDB();
+                  }
+                  
+                  // Get all existing recordings to check for duplicates (without using index)
+                  const readTransaction = db.transaction([storeName], "readonly");
+                  const readStore = readTransaction.objectStore(storeName);
+                  const getAllRequest = readStore.getAll();
+                  
+                  getAllRequest.onsuccess = () => {
+                      const existingRecordings = getAllRequest.result;
+                      const existingSignNames = new Set(
+                          existingRecordings.map(r => r.signName ? r.signName.toLowerCase() : '').filter(Boolean)
+                      );
+                      
+                      const writeTransaction = db.transaction([storeName], "readwrite");
+                      const writeStore = writeTransaction.objectStore(storeName);
+                      let importedCount = 0;
+                      let skippedCount = 0;
+                      let processed = 0;
+                      const total = importedData.length;
+                      
+                      importedData.forEach((recording) => {
+                          // Check for duplicate by signName (case-insensitive)
+                          const signName = recording.signName ? recording.signName.toLowerCase() : '';
+                          if (signName && existingSignNames.has(signName)) {
+                              skippedCount++;
                               processed++;
-                              if (processed === importedData.length) {
-                                  alert(`Imported ${importedCount} new recordings.`);
+                              if (processed === total) {
+                                  alert(`Imported ${importedCount} new recordings. ${skippedCount} duplicate(s) skipped.`);
                               }
-                          };
-                      } else {
-                          // Fallback: just add (may create duplicates if no index)
-                          store.add(recording);
-                          importedCount++;
-                          processed++;
-                          if (processed === importedData.length) {
-                              alert(`Imported ${importedCount} new recordings.`);
+                          } else {
+                              const addRequest = writeStore.add(recording);
+                              addRequest.onsuccess = () => {
+                                  if (signName) {
+                                      existingSignNames.add(signName);
+                                  }
+                                  importedCount++;
+                                  processed++;
+                                  if (processed === total) {
+                                      alert(`Imported ${importedCount} new recordings. ${skippedCount} duplicate(s) skipped.`);
+                                  }
+                              };
+                              addRequest.onerror = () => {
+                                  processed++;
+                                  if (processed === total) {
+                                      alert(`Imported ${importedCount} new recordings. ${skippedCount} duplicate(s) skipped.`);
+                                  }
+                              };
                           }
-                      }
-                  });
+                      });
+                  };
+                  
+                  getAllRequest.onerror = () => {
+                      console.error("Error reading existing recordings:", getAllRequest.error);
+                      alert("Failed to import: " + getAllRequest.error.message);
+                  };
               } catch (e) {
                   alert("Failed to import: " + e.message);
               }

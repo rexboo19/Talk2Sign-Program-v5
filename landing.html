@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talk2Sign - Sign Language Learning Platform</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Custom styles for Talk2Sign landing page */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .landing-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .btn-custom {
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 10px;
+            margin: 0.5rem;
+            min-width: 200px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            display: none; /* Hide the Start button */
+        }
+        
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .btn-training {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-training:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+            color: white;
+        }
+        
+        .btn-deploy {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-deploy:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+            color: white;
+        }
+        
+        .icon-container {
+            margin-bottom: 2rem;
+        }
+        
+        .icon-container img {
+            max-width: 200px;
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* YCI Logo in top right corner */
+        .yci-logo-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .yci-logo-container img {
+            max-width: 280px;
+            max-height: 140px;
+            width: auto;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
+        
+        @media (max-width: 768px) {
+            .yci-logo-container {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .yci-logo-container img {
+                max-width: 200px;
+                max-height: 100px;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .landing-container {
+                padding: 2rem;
+            }
+            
+            .btn-custom {
+                min-width: 100%;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- YCI Logo in top right corner -->
+    <div class="yci-logo-container">
+        <img src="./yci_logo.jpg" alt="YCI Logo" />
+    </div>
+    
+    <div class="landing-container">
+        <div class="icon-container">
+            <img src="./talk2sign_logo.png" alt="Talk2Sign Logo" />
+        </div>
+        <h1 class="title">Talk2Sign</h1>
+        
+        <div class="button-container">
+            <a href="docs/index.html" class="btn btn-custom btn-start">
+                <i class="bi bi-play-circle me-2"></i>Start
+            </a>
+            <br>
+            <a href="training.html" class="btn btn-custom btn-training">
+                <i class="bi bi-book me-2"></i>Training
+            </a>
+            <br>
+            <a href="deploy.html" class="btn btn-custom btn-deploy">
+                <i class="bi bi-rocket-takeoff me-2"></i>Deploy
+            </a>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
